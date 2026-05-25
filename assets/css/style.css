@@ -1,0 +1,282 @@
+/* assets/css/style.css */
+
+/* Variables del sistema de diseño (estilo corporativo legacy premium) */
+:root {
+    --primary-color: #1e3c72;
+    --primary-dark: #122548;
+    --primary-light: #2a5298;
+    --secondary-color: #6c757d;
+    --bg-light: #f4f6f9;
+    --sidebar-bg: #212529;
+    --sidebar-hover: #343a40;
+    --sidebar-active: #0d6efd;
+    --text-dark: #333333;
+    --font-sans: 'Outfit', 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    margin: 0;
+    padding-top: 56px; /* Altura de la navbar */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Layout con Flexbox */
+.wrapper {
+    display: flex;
+    flex: 1 0 auto;
+    width: 100%;
+}
+
+/* Navbar superior */
+.bg-primary-dark {
+    background-color: var(--primary-dark) !important;
+}
+
+.navbar-brand {
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+/* Sidebar styling */
+.sidebar {
+    width: 260px;
+    background-color: var(--sidebar-bg);
+    min-height: calc(100vh - 56px);
+    transition: all 0.3s;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-avatar-large {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 0.9rem;
+}
+
+.sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.75);
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+    border-radius: 0;
+    border-left: 4px solid transparent;
+    transition: all 0.2s ease-in-out;
+}
+
+.sidebar .nav-link:hover {
+    background-color: var(--sidebar-hover);
+    color: #ffffff;
+    border-left-color: var(--secondary-color);
+}
+
+.sidebar .nav-link.active {
+    background-color: var(--sidebar-hover);
+    color: #ffffff;
+    border-left-color: var(--sidebar-active);
+    font-weight: 500;
+}
+
+.menu-label {
+    letter-spacing: 1px;
+}
+
+/* Content Body */
+.content-body {
+    flex-grow: 1;
+    background-color: var(--bg-light);
+    min-width: 0; /* Evita desbordamiento en flexbox */
+}
+
+/* Footer styling */
+.footer {
+    flex-shrink: 0;
+}
+
+/* Cards y elementos del dashboard */
+.card-stats {
+    border: none;
+    border-radius: 10px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card-stats:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.stat-icon {
+    font-size: 2.2rem;
+    opacity: 0.8;
+}
+
+/* Estilización general */
+.card {
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    border-bottom: 2px solid #dee2e6;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.table td {
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.4em 0.7em;
+}
+
+/* Utility classes */
+.fs-7 { font-size: 0.85rem; }
+.fs-8 { font-size: 0.75rem; }
+.fs-9 { font-size: 0.65rem; }
+.tracking-wide { letter-spacing: 1px; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .wrapper {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        min-height: auto;
+    }
+}
+
+/* --- Estilos de impresión (Print styles) para exportar PDF oficiales --- */
+@media print {
+    /* Ocultar barra de navegación, menú lateral (sidebar), pie de página, filtros y botones de acción */
+    .navbar, 
+    .sidebar, 
+    .footer, 
+    .btn, 
+    .input-group,
+    form,
+    .alert,
+    #tableSearch,
+    .quick-access-section,
+    .card-header .btn,
+    .no-print {
+        display: none !important;
+    }
+
+    /* Resetear márgenes y cuerpo */
+    body {
+        padding-top: 0 !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        font-size: 11pt !important;
+    }
+
+    /* El contenedor principal debe tomar todo el ancho */
+    .wrapper {
+        display: block !important;
+    }
+
+    .content-body {
+        padding: 0 !important;
+        background-color: #ffffff !important;
+        margin: 0 !important;
+    }
+
+    .container-fluid {
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Estructurar la tarjeta de datos para que ocupe todo el ancho y no tenga bordes/sombras feas */
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background-color: #ffffff !important;
+    }
+
+    .card-body {
+        padding: 0 !important;
+    }
+
+    /* Cabecera de reporte oficial para impresión */
+    .print-header {
+        display: block !important;
+        margin-bottom: 2rem;
+        border-bottom: 3px double #1e3c72;
+        padding-bottom: 1rem;
+    }
+
+    .print-header h2 {
+        color: #1e3c72 !important;
+        font-weight: 700 !important;
+        margin: 0;
+        font-size: 20pt;
+    }
+
+    .print-header p {
+        margin: 5px 0 0 0;
+        color: #495057 !important;
+        font-size: 10pt;
+    }
+
+    /* Asegurar que las tablas se vean perfectas */
+    .table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+
+    .table th {
+        background-color: #f1f3f5 !important;
+        color: #000000 !important;
+        border-bottom: 2px solid #333333 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .table td, .table th {
+        padding: 8px !important;
+        border: 1px solid #dee2e6 !important;
+    }
+
+    /* Mantener colores de las insignias (badges) en la impresión de forma sobria */
+    .badge {
+        border: 1px solid #000000 !important;
+        color: #000000 !important;
+        background-color: transparent !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+/* Cabecera oculta en pantalla normal, visible solo al imprimir */
+.print-header {
+    display: none;
+}
+
