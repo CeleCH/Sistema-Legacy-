@@ -40,8 +40,8 @@ $rol = $_SESSION['usuario_rol'];
                 </li>
             <?php endif; ?>
 
-            <!-- Profesores (Director, Administrador) -->
-            <?php if (in_array($rol, ['Director', 'Administrador'])): ?>
+            <!-- Profesores (Solo Director) -->
+            <?php if ($rol === 'Director'): ?>
                 <li class="nav-item">
                     <a class="nav-link d-flex align-items-center <?php echo $current_page == 'profesores.php' ? 'active' : ''; ?>" href="<?php echo $base_path; ?>modules/profesores.php">
                         <i class="fa-solid fa-chalkboard-user me-3 fs-5"></i>
@@ -70,21 +70,25 @@ $rol = $_SESSION['usuario_rol'];
                 </li>
             <?php endif; ?>
 
-            <!-- Asistencia (Todos los roles, pero Docente/Director/Admin registran; Alumno/Padre consultan) -->
-            <li class="nav-item">
-                <a class="nav-link d-flex align-items-center <?php echo $current_page == 'asistencia.php' ? 'active' : ''; ?>" href="<?php echo $base_path; ?>modules/asistencia.php">
-                    <i class="fa-solid fa-calendar-check me-3 fs-5"></i>
-                    <span>Asistencia</span>
-                </a>
-            </li>
+            <!-- Asistencia (Director, Docente, Alumno, Padre de familia) -->
+            <?php if (in_array($rol, ['Director', 'Docente', 'Alumno', 'Padre de familia'])): ?>
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center <?php echo $current_page == 'asistencia.php' ? 'active' : ''; ?>" href="<?php echo $base_path; ?>modules/asistencia.php">
+                        <i class="fa-solid fa-calendar-check me-3 fs-5"></i>
+                        <span>Asistencia</span>
+                    </a>
+                </li>
+            <?php endif; ?>
 
-            <!-- Calificaciones (Todos los roles, pero Docente/Director/Admin registran; Alumno/Padre consultan) -->
-            <li class="nav-item">
-                <a class="nav-link d-flex align-items-center <?php echo $current_page == 'calificaciones.php' ? 'active' : ''; ?>" href="<?php echo $base_path; ?>modules/calificaciones.php">
-                    <i class="fa-solid fa-square-poll-vertical me-3 fs-5"></i>
-                    <span>Calificaciones</span>
-                </a>
-            </li>
+            <!-- Calificaciones (Director, Docente, Alumno, Padre de familia) -->
+            <?php if (in_array($rol, ['Director', 'Docente', 'Alumno', 'Padre de familia'])): ?>
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center <?php echo $current_page == 'calificaciones.php' ? 'active' : ''; ?>" href="<?php echo $base_path; ?>modules/calificaciones.php">
+                        <i class="fa-solid fa-square-poll-vertical me-3 fs-5"></i>
+                        <span>Calificaciones</span>
+                    </a>
+                </li>
+            <?php endif; ?>
 
             <!-- Pagos (Director, Administrador, Alumno, Padre de familia) -->
             <?php if (in_array($rol, ['Director', 'Administrador', 'Alumno', 'Padre de familia'])): ?>

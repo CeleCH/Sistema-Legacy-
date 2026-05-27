@@ -3,12 +3,12 @@
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 
-// Control de acceso: Todos los roles
-check_role(['Director', 'Administrador', 'Docente', 'Alumno', 'Padre de familia']);
+// Control de acceso: Director, Docente, Alumno, Padre de familia
+check_role(['Director', 'Docente', 'Alumno', 'Padre de familia']);
 
 $rol = $_SESSION['usuario_rol'];
 $userId = $_SESSION['usuario_id'];
-$can_register = in_array($rol, ['Director', 'Administrador', 'Docente']);
+$can_register = in_array($rol, ['Director', 'Docente']);
 
 $msg = $_GET['msg'] ?? '';
 $error = $_GET['error'] ?? '';

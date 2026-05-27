@@ -1,438 +1,345 @@
-# 🎓 Sistema Legacy - Colegio Futuro Digital
+# 🎓 Sistema Académico Legacy - Colegio Futuro Digital
 
-Sistema de gestión académica monolítico desarrollado con **PHP, SQLite, HTML, CSS y JavaScript**.  
-Este proyecto representa la versión **legacy tradicional** del sistema académico del Colegio Futuro Digital, utilizada como base inicial antes de la migración hacia una arquitectura SOA basada en microservicios.
+Este proyecto es el **Sistema Legacy (Monolítico)** del Colegio Futuro Digital. Lo desarrollamos usando **PHP, SQLite, HTML5, CSS3 y JavaScript** básico. 
 
----
-
-# 📋 Contenido de esta Documentación
-
-- ¿Qué es una Arquitectura Monolítica?
-- Características del Sistema Legacy
-- Arquitectura del Sistema
-- Diagramas del Sistema
-- Modelo de Datos
-- Módulos del Sistema
-- Estructura del Proyecto
-- Autenticación y Seguridad
-- Roles del Sistema
-- Flujo General del Sistema
-- Tecnologías Utilizadas
-- Instalación y Ejecución
-- Problemas del Sistema Legacy
-- Relación con la Migración SOA
+En nuestro curso de **Arquitectura Orientada a Servicios (SOA)** en la **UTP**, estamos usando este sistema como la base monolítica inicial. El objetivo es entender cómo funciona el negocio del colegio, ver sus procesos actuales y a partir de aquí, planificar la **migración hacia microservicios** desacoplados.
 
 ---
 
-# 💡 ¿Qué es una Arquitectura Monolítica?
+## 🏛️ ¿Cómo funciona este Monolito?
 
-Una arquitectura monolítica es un modelo tradicional de desarrollo de software donde todas las funcionalidades del sistema se encuentran integradas dentro de una sola aplicación centralizada.
-
-En este enfoque:
-
-- Toda la lógica del negocio comparte el mismo proyecto.
-- Todos los módulos utilizan la misma base de datos.
-- El sistema se despliega como una sola aplicación.
-- Existe fuerte dependencia entre componentes.
+El sistema está construido de forma monolítica tradicional:
+*   **Base de datos compartida:** Todos los archivos PHP leen y escriben en el mismo archivo SQLite (`colegio.db`).
+*   **Rutas directas:** No hay un enrutador web complejo. Cada página o acción del menú del sistema carga directamente un archivo `.php` físico (por ejemplo, para ver los alumnos se carga `/modules/alumnos.php`).
+*   **Código acoplado:** Las vistas en HTML, la lógica de las consultas SQL y el estilo CSS están integrados dentro de los archivos de cada módulo, apoyándose en archivos comunes dentro de `includes/`.
 
 ---
 
-# 🏛️ Características del Sistema Legacy
+## 👥 Control de Roles y Accesos del Sistema
 
-Este sistema fue desarrollado como una solución académica tradicional para gestionar procesos administrativos y académicos del colegio.
+Hemos configurado **5 roles** en el sistema para simular los accesos reales que tendría el colegio. Cada rol tiene permisos específicos en los archivos PHP:
 
-| Característica | Implementación |
-|---|---|
-| Arquitectura | Monolítica |
-| Backend | PHP |
-| Base de Datos | SQLite |
-| Frontend | HTML + CSS + JavaScript |
-| Autenticación | Sesiones PHP |
-| Comunicación interna | Directa entre módulos |
-| Base de datos | Compartida y centralizada |
+| Rol | Módulos permitidos | ¿Qué puede hacer en el sistema? | Restricciones aplicadas |
+| :--- | :--- | :--- | :--- |
+| **👑 Director** | **Todos los módulos** | Ve el dashboard general con estadísticas y tiene control total (Crear, Editar y Eliminar) sobre Alumnos, Docentes, Cursos, Matrículas, Pagos y Notificaciones. | No tiene restricciones de seguridad. |
+| **💼 Administrativo**<br>*(Administrador)* | Alumnos, Cursos, Matrículas, Pagos y Notificaciones. | Gestiona la parte administrativa: registra alumnos, actualiza cursos y maneja la recaudación de pensiones (marcar pagos). | **No puede gestionar Profesores** (módulo bloqueado). **Tampoco entra en la parte pedagógica** (Asistencia y Calificaciones están completamente bloqueados). |
+| **👨‍🏫 Docente** | Alumnos (Solo ver), Cursos (Solo ver), Asistencia, Calificaciones y Notificaciones. | Pasa asistencia diaria y sube notas (escala de 0 a 20) **únicamente en los cursos que tiene asignados**. Puede revisar fichas de alumnos. | **No puede crear ni borrar registros importantes** (ni alumnos, ni cursos, ni profesores). No tiene acceso al módulo de pagos. |
+| **🧑‍🎓 Alumno** | Asistencia, Calificaciones, Pagos y Notificaciones (Solo de su cuenta). | Entra para ver su libreta de notas, su porcentaje de asistencia, sus inasistencias y si tiene pensiones por pagar. Puede descargar reportes en PDF. | Perfil 100% de lectura. **No puede editar nada** y no puede ver datos de otros compañeros. |
+| **👨‍👩‍👦 Padre** | Dashboard de su hijo, Asistencia, Calificaciones, Pagos y Notificaciones. | Tiene una vista de resumen para monitorear el promedio, las notas por curso, las faltas de su hijo(a) y el estado de cuenta de sus pensiones. | Perfil 100% de lectura. **No puede modificar nada** de la información académica o de pagos. |
 
 ---
 
-# 🏗️ Arquitectura del Sistema
+## 📊 Diagramas de Flujo del Sistema (Mermaid)
 
-La arquitectura del sistema se encuentra organizada como una aplicación monolítica centralizada.
-
-Todos los módulos académicos y administrativos funcionan dentro del mismo entorno PHP y comparten una única base de datos SQLite.
+### 1. Estructura General y Base de Datos
+Aquí se ve cómo el servidor PHP procesa cada módulo por separado, pero todos terminan escribiendo en la misma base de datos SQLite centralizada:
 
 ```mermaid
 graph TD
-
-    USER["👤 Usuario"] --> APP["🏛️ Sistema Monolítico PHP"]
-
-    subgraph Monolito["Sistema Legacy"]
-        A["📚 alumnos.php"]
-        B["👨‍🏫 profesores.php"]
-        C["📝 matriculas.php"]
-        D["💳 pagos.php"]
-        E["📅 asistencia.php"]
-        F["📊 calificaciones.php"]
-        G["📢 notificaciones.php"]
-        H["📘 cursos.php"]
+    USER["👤 Usuario (Navegador)"] -->|Consulta HTTP| SRV["💻 Servidor Local (PHP)"]
+    
+    subgraph Monolito["Estructura del Proyecto"]
+        SRV --> DSH["📊 dashboard.php"]
+        SRV --> AL["📚 modules/alumnos.php"]
+        SRV --> PR["👨‍🏫 modules/profesores.php"]
+        SRV --> AS["📅 modules/asistencia.php"]
+        SRV --> CA["📊 modules/calificaciones.php"]
+        SRV --> PA["💳 modules/pagos.php"]
     end
 
-    APP --> A
-    APP --> B
-    APP --> C
-    APP --> D
-    APP --> E
-    APP --> F
-    APP --> G
-    APP --> H
-
-    A --> DB["💾 SQLite - colegio.db"]
-    B --> DB
-    C --> DB
-    D --> DB
-    E --> DB
-    F --> DB
-    G --> DB
-    H --> DB
+    subgraph Data["Base de Datos"]
+        DSH --> DB[("💾 SQLite - colegio.db")]
+        AL --> DB
+        PR --> DB
+        AS --> DB
+        CA --> DB
+        PA --> DB
+    end
 ```
 
----
-
-# 📊 Diagramas del Sistema
-
-## 🔹 Diagrama de Componentes
-
-```mermaid
-graph LR
-
-    UI["🖥️ Frontend PHP"]
-    AUTH["🔐 Autenticación"]
-    MODS["📚 Módulos Académicos"]
-    DB["💾 SQLite"]
-
-    UI --> AUTH
-    UI --> MODS
-    MODS --> DB
-```
-
----
-
-## 🔹 Diagrama de Flujo Académico
-
-```mermaid
-flowchart TD
-
-    A[👤 Usuario inicia sesión]
-    B[📊 Accede al Dashboard]
-    C[📚 Selecciona módulo]
-    D[⚙️ Procesa información]
-    E[💾 Guarda en SQLite]
-    F[✅ Muestra resultados]
-
-    A --> B --> C --> D --> E --> F
-```
-
----
-
-## 🔹 Diagrama de Autenticación
+### 2. Flujo de Login y Seguridad de Roles (`auth.php`)
+Este diagrama explica cómo el sistema valida las credenciales y cómo la función `check_role()` rebota a los usuarios que no tienen permiso:
 
 ```mermaid
 sequenceDiagram
+    autonumber
+    actor Usuario
+    participant Login as login.php
+    participant Auth as includes/auth.php
+    participant DB as SQLite (colegio.db)
+    participant Modulo as modulo.php (ej. profesores.php)
 
-    participant Usuario
-    participant Login
-    participant SQLite
-
-    Usuario->>Login: Ingresar credenciales
-    Login->>SQLite: Validar usuario
-    SQLite-->>Login: Usuario válido
-    Login-->>Usuario: Acceso permitido
+    Usuario->>Login: Escribe usuario y contraseña
+    Login->>DB: Busca si existe el usuario
+    DB-->>Login: Retorna datos y contraseña encriptada (hash)
+    Login->>Login: Verifica hash de la clave
+    Note over Login: Si está bien, guarda los datos del rol<br/>y nombre en la sesión PHP ($_SESSION)
+    Login-->>Usuario: Redirige al Dashboard
+    
+    Usuario->>Modulo: Intenta entrar a una página restringida
+    Modulo->>Auth: Ejecuta check_role(['Director'])
+    Note over Auth: Compara el rol de la sesión<br/>con los roles permitidos
+    alt Rol Autorizado (ej. Director)
+        Auth-->>Modulo: Permite continuar
+        Modulo-->>Usuario: Muestra la página web
+    else Rol NO Autorizado (ej. Administrativo)
+        Auth-->>Usuario: Muestra pantalla de 'Acceso Denegado' (Error 403)
+    end
 ```
 
----
-
-## 🔹 Diagrama de Módulos del Sistema
+### 3. Flujo automático al registrar una Falta
+Cuando un docente marca una inasistencia, el sistema de forma interna registra la falta y automáticamente le envía una notificación al estudiante y su apoderado:
 
 ```mermaid
-graph TD
-
-    DASH["📊 Dashboard"]
-
-    DASH --> A["📚 Alumnos"]
-    DASH --> B["👨‍🏫 Profesores"]
-    DASH --> C["💳 Pagos"]
-    DASH --> D["📅 Asistencia"]
-    DASH --> E["📊 Calificaciones"]
-    DASH --> F["📝 Matrículas"]
-    DASH --> G["📘 Cursos"]
-    DASH --> H["📢 Notificaciones"]
+flowchart TD
+    A["👨‍🏫 Docente registra asistencia"] -->|Presiona 'Guardar Asistencias'| B{"¿El alumno faltó?"}
+    B -->|Sí| C["💾 Guarda la Falta en la tabla 'asistencias'"]
+    B -->|Sí| D["📝 Obtiene el 'usuario_id' del alumno"]
+    D --> E["⚡ Inserta un mensaje en la tabla 'notificaciones' (leido = 0)"]
+    E --> F["🔔 El Alumno y el Padre ven la alerta en sus notificaciones de inmediato"]
+    B -->|No| G["💾 Solo guarda la asistencia en la base de datos"]
 ```
 
 ---
 
-## 🔹 Transformación Legacy → SOA
-
-```mermaid
-graph LR
-
-    A["🏛️ Sistema Monolítico PHP"]
-    B["🔍 Identificación de módulos"]
-    C["⚙️ Descomposición funcional"]
-    D["🚀 Microservicios SOA"]
-
-    A --> B --> C --> D
-```
-
----
-
-# 📊 Modelo de Datos
-
-El sistema utiliza una base de datos SQLite centralizada que almacena toda la información académica y administrativa.
-
-## Principales entidades
-
-- usuarios
-- alumnos
-- profesores
-- cursos
-- matriculas
-- pagos
-- asistencias
-- calificaciones
-- notificaciones
-
----
-
-# 🧩 Módulos del Sistema
-
-| Módulo | Funcionalidad |
-|---|---|
-| alumnos.php | Gestión de estudiantes |
-| profesores.php | Gestión de docentes |
-| cursos.php | Administración académica |
-| matriculas.php | Registro de matrículas |
-| pagos.php | Gestión financiera |
-| asistencia.php | Control de asistencia |
-| calificaciones.php | Registro de notas |
-| notificaciones.php | Alertas y mensajes |
-
----
-
-# 📂 Estructura del Proyecto
+## 📂 Organización de las Carpetas
 
 ```bash
 SISTEMALEGACY/
 │
-├── assets/
+├── assets/                  # CSS y scripts de diseño
 │   ├── css/
+│   │   └── style.css        # Estilos visuales del sistema (incluye el diseño responsive)
 │   └── js/
 │
-├── config/
-│   └── db.php
+├── config/                  # Archivos de conexión
+│   └── db.php               # Crea la base de datos SQLite y mete datos de prueba automáticamente
 │
-├── database/
-│   ├── colegio.db
-│   ├── colegio.db.bak
-│   └── reset_db.php
+├── database/                # Base de datos y mantenimiento
+│   ├── colegio.db           # Archivo SQLite activo
+│   ├── colegio.db.bak       # Copia de seguridad por si acaso
+│   └── reset_db.php         # Script de consola para reiniciar la base de datos a cero
 │
-├── includes/
-│   ├── auth.php
-│   ├── header.php
-│   ├── footer.php
-│   └── sidebar.php
+├── includes/                # Archivos PHP reutilizables
+│   ├── auth.php             # Controla el login, las sesiones y los roles permitidos
+│   ├── header.php           # Menú superior y estilos comunes
+│   ├── footer.php           # Pie de página común
+│   └── sidebar.php          # Barra de navegación lateral (cambia según el rol del usuario)
 │
-├── modules/
-│   ├── alumnos.php
-│   ├── asistencia.php
-│   ├── calificaciones.php
-│   ├── cursos.php
-│   ├── matriculas.php
-│   ├── notificaciones.php
-│   ├── pagos.php
-│   └── profesores.php
+├── modules/                 # Archivos de cada módulo
+│   ├── alumnos.php          # Ver alumnos y CRUD (crear/editar/borrar)
+│   ├── asistencia.php       # Tomar y consultar asistencia
+│   ├── calificaciones.php   # Subir notas e informes de calificaciones
+│   ├── cursos.php           # Lista de cursos, horarios y profesores
+│   ├── matriculas.php       # Matricular alumnos y cambiar estados
+│   ├── notificaciones.php   # Bandeja de entrada y envío de avisos
+│   ├── pagos.php            # Ver cobros, registrar deudas y pagos
+│   └── profesores.php       # Ver docentes y CRUD
 │
-├── dashboard.php
-├── index.php
-├── login.php
-├── logout.php
-└── README.md
+├── dashboard.php            # Página de inicio con estadísticas y gráficos (usando Chart.js)
+├── index.php                # Redirige al login o al dashboard si ya estás logueado
+├── login.php                # Pantalla de login (tiene botones para autocompletar cuentas demo)
+├── logout.php               # Cierra la sesión del usuario
+└── README.md                # Esta guía
 ```
 
 ---
 
-# 🔐 Autenticación y Seguridad
+## 💾 Tablas de la Base de Datos (SQLite)
 
-El sistema implementa autenticación tradicional utilizando sesiones PHP.
+Este es el script SQL con el que creamos las tablas en SQLite de forma relacional:
 
-## Características implementadas
+```sql
+-- Tabla para guardar los usuarios y sus roles
+CREATE TABLE usuarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    nombre TEXT NOT NULL,
+    email TEXT,
+    rol TEXT NOT NULL CHECK(rol IN ('Director', 'Administrador', 'Docente', 'Alumno', 'Padre de familia'))
+);
 
-- Inicio de sesión mediante `login.php`
-- Validación de usuarios
-- Manejo de sesiones PHP
-- Restricción de acceso por rol
-- Protección de módulos internos
+-- Ficha de datos personales de los estudiantes
+CREATE TABLE alumnos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER UNIQUE,
+    nombre TEXT NOT NULL,
+    apellido TEXT NOT NULL,
+    documento TEXT UNIQUE NOT NULL,
+    fecha_nacimiento TEXT,
+    direccion TEXT,
+    telefono TEXT,
+    estado_academico TEXT DEFAULT 'Regular' CHECK(estado_academico IN ('Regular', 'Condicional', 'Suspendido', 'Egresado')),
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
+);
 
----
+-- Ficha de los docentes
+CREATE TABLE profesores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER UNIQUE,
+    nombre TEXT NOT NULL,
+    apellido TEXT NOT NULL,
+    especialidad TEXT,
+    telefono TEXT,
+    email TEXT,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
+);
 
-# 👥 Roles del Sistema
+-- Cursos y sus profesores asignados
+CREATE TABLE cursos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    codigo TEXT UNIQUE NOT NULL,
+    descripcion TEXT,
+    profesor_id INTEGER,
+    horario TEXT,
+    FOREIGN KEY (profesor_id) REFERENCES profesores(id) ON DELETE SET NULL
+);
 
-| Rol | Funcionalidad |
-|---|---|
-| Director | Acceso total al sistema |
-| Administrador | Gestión académica y administrativa |
-| Docente | Registro de asistencia y calificaciones |
-| Alumno | Consulta de información académica |
-| Padre de familia | Consulta de pagos y notas |
+-- Estado de las matrículas
+CREATE TABLE matriculas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    alumno_id INTEGER NOT NULL,
+    fecha TEXT NOT NULL,
+    estado TEXT DEFAULT 'Pendiente' CHECK(estado IN ('Activa', 'Inactiva', 'Pendiente')),
+    FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
+);
 
----
+-- Control de pagos y pensiones
+CREATE TABLE pagos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    alumno_id INTEGER NOT NULL,
+    monto REAL NOT NULL,
+    fecha TEXT NOT NULL,
+    concepto TEXT NOT NULL,
+    estado TEXT DEFAULT 'Pendiente' CHECK(estado IN ('Pagado', 'Pendiente', 'Vencido')),
+    FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
+);
 
-# 📈 Dashboard del Sistema
+-- Asistencia de los alumnos por día y curso
+CREATE TABLE asistencias (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    alumno_id INTEGER NOT NULL,
+    curso_id INTEGER NOT NULL,
+    fecha TEXT NOT NULL,
+    estado TEXT NOT NULL CHECK(estado IN ('Presente', 'Falta', 'Tardanza', 'Justificada')),
+    FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
+    FOREIGN KEY (curso_id) REFERENCES cursos(id) ON DELETE CASCADE,
+    UNIQUE(alumno_id, curso_id, fecha)
+);
 
-El sistema incluye un dashboard administrativo con:
+-- Notas de los alumnos por materia
+CREATE TABLE calificaciones (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    alumno_id INTEGER NOT NULL,
+    curso_id INTEGER NOT NULL,
+    nota REAL NOT NULL CHECK(nota >= 0 AND nota <= 20),
+    fecha TEXT NOT NULL,
+    observaciones TEXT,
+    FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
+    FOREIGN KEY (curso_id) REFERENCES cursos(id) ON DELETE CASCADE
+);
 
-- Estadísticas académicas
-- Resumen financiero
-- Gestión de matrículas
-- Visualización de alumnos
-- Control de pagos
-- Acceso rápido a módulos
-
----
-
-# 🔄 Flujo General del Sistema
-
-```mermaid
-sequenceDiagram
-
-    participant Usuario
-    participant Sistema
-    participant Modulo
-    participant SQLite
-
-    Usuario->>Sistema: Iniciar sesión
-    Sistema->>SQLite: Validar usuario
-    SQLite-->>Sistema: Usuario válido
-
-    Sistema-->>Usuario: Acceso permitido
-
-    Usuario->>Modulo: Acceder a módulo
-    Modulo->>SQLite: Consultar datos
-    SQLite-->>Modulo: Retornar información
-
-    Modulo-->>Usuario: Mostrar datos
+-- Bandeja de notificaciones y alertas
+CREATE TABLE notificaciones (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL,
+    titulo TEXT NOT NULL,
+    mensaje TEXT NOT NULL,
+    fecha TEXT NOT NULL,
+    leido INTEGER DEFAULT 0 CHECK(leido IN (0, 1)),
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
 ```
 
 ---
 
-# ⚙️ Tecnologías Utilizadas
+## ⚡ Cómo Instalar y Ejecutar el Proyecto
 
-| Tecnología | Uso |
-|---|---|
-| PHP | Backend monolítico |
-| SQLite | Base de datos |
-| HTML5 | Estructura frontend |
-| CSS3 | Estilos |
-| JavaScript | Funcionalidades cliente |
-| Bootstrap | Diseño responsive |
-| PDO | Conexión segura a SQLite |
+### 1. Preparación de la Base de Datos
+Para asegurarnos de que la base de datos tenga datos consistentes para las pruebas (al menos 10 registros por tabla, contraseñas sembradas y vinculaciones reales), podemos correr el script de reinicio desde la terminal:
 
----
+```bash
+# Entrar a la carpeta del proyecto y ejecutar:
+php database/reset_db.php
+```
 
-# ▶️ Instalación y Ejecución
+El script limpiará la base de datos vieja y sembrará todos los usuarios y tablas listos para usar en la simulación.
 
-## 📌 Requisitos
-
-- PHP 8 o superior
-- SQLite
-- Navegador moderno
-
----
-
-## 🚀 Ejecutar Proyecto
-
-Desde la raíz del proyecto:
+### 2. Levantar el Servidor Local
+Para correr el proyecto en la computadora, usamos el servidor web interno de PHP en la terminal de la raíz del proyecto:
 
 ```bash
 php -S localhost:8000
 ```
 
-Abrir en navegador:
-
-```txt
-http://localhost:8000
-```
+Ahora abrimos el navegador web y entramos a: [http://localhost:8000](http://localhost:8000)
 
 ---
 
-# 👤 Usuarios de Prueba
+## 📮 Cómo Probar los Accesos en Postman (Simular peticiones)
 
-| Usuario | Rol |
-|---|---|
-| director@colegio.com | Director |
-| admin@colegio.com | Administrador |
-| docente@colegio.com | Docente |
-| alumno@colegio.com | Alumno |
+Como este sistema usa sesiones tradicionales de PHP (`PHPSESSID`) y formularios normales de HTML, podemos simular las pruebas de login y los permisos de los módulos en Postman siguiendo estos sencillos pasos:
 
-### Contraseña
+### Paso 1: Autenticación (Iniciar Sesión)
+Primero necesitamos loguearnos para obtener una cookie de sesión activa que Postman guardará automáticamente.
 
-```txt
-password123
-```
+1.  Abre Postman y crea una petición de tipo **`POST`**.
+2.  Coloca la URL: **`http://localhost:8000/login.php`**
+3.  Ve a la pestaña **`Body`**, selecciona **`x-www-form-urlencoded`** y añade estos datos:
+    *   `username`: `director`  (puedes probar con otros roles: `admin`, `profesor1`, `alumno1`, `padre1`)
+    *   `password`: `password123`
+4.  Presiona **`Send`**.
+5.  *Nota:* Postman recibirá la cookie de sesión de PHP en las cabeceras de respuesta y la recordará para los siguientes pasos.
 
----
+### Paso 2: Probar los Permisos (Petición GET)
+Con la sesión abierta, probemos si el rol tiene o no permitido ver un archivo.
 
-# ⚠️ Problemas del Sistema Legacy
+1.  Crea una petición de tipo **`GET`**.
+2.  Coloca la URL: **`http://localhost:8000/modules/alumnos.php`**
+3.  Presiona **`Send`**.
+4.  *Resultado:* Si iniciaste sesión como **Director, Administrativo o Docente**, te devolverá el HTML del listado. Pero si iniciaste sesión como **Alumno o Padre de familia**, el servidor te devolverá un estado **`403 Forbidden`** (Acceso Denegado). ¡Funciona la seguridad!
 
-Durante el análisis del sistema monolítico se identificaron diversas limitaciones técnicas.
+### Paso 3: Simular la Creación de un Alumno (POST Form)
+Para registrar un alumno nuevo en la base de datos (disponible para `Director` o `Administrativo`):
 
-## 🔴 Alto Acoplamiento
-
-Todos los módulos dependen directamente entre sí.
-
-## 🔴 Escalabilidad Limitada
-
-El crecimiento del sistema afecta el rendimiento general.
-
-## 🔴 Mantenimiento Complejo
-
-Cambios en un módulo pueden afectar otros componentes.
-
-## 🔴 Integración Limitada
-
-Dificultad para conectarse con servicios externos modernos.
-
-## 🔴 Dependencia Centralizada
-
-Toda la lógica y datos se encuentran dentro de una sola aplicación.
-
----
-
-# 🚀 Relación con la Migración SOA
-
-Este sistema legacy fue utilizado como base para la migración hacia una Arquitectura Orientada a Servicios (SOA).
-
-A partir de este sistema monolítico se identificaron los módulos candidatos a microservicios.
-
-| Sistema Legacy | Sistema SOA |
-|---|---|
-| alumnos.php | alumnos-service |
-| asistencia.php | asistencia-service |
-| pagos.php | pagos-service |
-| matriculas.php | matricula-service |
-| profesores.php | profesores-service |
-| calificaciones.php | calificaciones-service |
-| notificaciones.php | notificaciones-service |
-| cursos.php | cursos-service |
-
-La nueva arquitectura SOA permitió desacoplar los procesos académicos y administrativos en servicios independientes capaces de comunicarse mediante APIs REST.
+1.  Crea una petición de tipo **`POST`**.
+2.  Coloca la URL: **`http://localhost:8000/modules/alumnos.php?action=create`**
+3.  Ve a **`Body`** -> **`x-www-form-urlencoded`** y llena los campos obligatorios del formulario:
+    *   `nombre`: `Renato`
+    *   `apellido`: `Mendoza`
+    *   `documento`: `74839201`
+    *   `fecha_nacimiento`: `2011-06-15`
+    *   `direccion`: `Calle las Flores 123`
+    *   `telefono`: `987654321`
+    *   `estado_academico`: `Regular`
+    *   `email`: `renato.mendoza@colegio.edu.pe`
+    *   `username`: `renatomendoza`
+    *   `password`: `password123`
+4.  Presiona **`Send`**.
 
 ---
 
-# 🏛️ Proyecto Académico
+## 🛑 Limitaciones de este Monolito (Justificación para migrar a SOA)
 
-## 🎓 Colegio Futuro Digital
+Durante el análisis del código legacy, encontramos varios problemas clásicos de los sistemas monolíticos que justifican la migración a una Arquitectura de Microservicios:
 
-Arquitectura Orientada a Servicios (SOA)  
-Universidad Tecnológica del Perú
+1.  **Problema con SQLite:** Al ser una base de datos local basada en un archivo físico, si muchos profesores intentaran ingresar calificaciones al mismo tiempo, el archivo se bloquearía causando lentitud o errores.
+2.  **Acoplamiento Fuerte:** Si se cae el código de la barra lateral (`sidebar.php`) por un error de sintaxis, se rompe toda la aplicación académica y de pagos al mismo tiempo.
+3.  **Falta de APIs REST:** No tiene APIs limpias en formato JSON para que se puedan conectar aplicaciones móviles u otros sistemas.
+
+### Propuesta de Descomposición a Microservicios (SOA):
+Para resolver estos problemas, propusimos separar cada pantalla física de PHP en servicios autónomos e independientes que se comuniquen por APIs REST:
+
+*   `modules/alumnos.php` ➔ **Microservicio de Alumnos** (Backend en Spring Boot)
+*   `modules/calificaciones.php` ➔ **Microservicio de Notas** (Backend en Spring Boot)
+*   `modules/asistencia.php` ➔ **Microservicio de Asistencia** (Backend en Go)
+*   `modules/pagos.php` ➔ **Microservicio de Pagos** (Backend en Django)
+*   `modules/notificaciones.php` ➔ **Microservicio de Notificaciones** (Node.js)
 
 ---
-
-Sistema legacy utilizado como base para la transformación hacia arquitectura SOA.
+**🎓 Proyecto de Arquitectura de Sistemas**  
+*Curso de Arquitectura Orientada a Servicios (SOA)*  
+*Universidad Tecnológica del Perú (UTP)*  
+*Mayo 2026*
