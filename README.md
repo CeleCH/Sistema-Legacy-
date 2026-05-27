@@ -332,11 +332,18 @@ Durante el análisis del código legacy, encontramos varios problemas clásicos 
 ### Propuesta de Descomposición a Microservicios (SOA):
 Para resolver estos problemas, propusimos separar cada pantalla física de PHP en servicios autónomos e independientes que se comuniquen por APIs REST:
 
-*   `modules/alumnos.php` ➔ **Microservicio de Alumnos** (Backend en Spring Boot)
-*   `modules/calificaciones.php` ➔ **Microservicio de Notas** (Backend en Spring Boot)
-*   `modules/asistencia.php` ➔ **Microservicio de Asistencia** (Backend en Go)
-*   `modules/pagos.php` ➔ **Microservicio de Pagos** (Backend en Django)
-*   `modules/notificaciones.php` ➔ **Microservicio de Notificaciones** (Node.js)
+| Sistema Legacy (PHP Monolítico) | Microservicio SOA | Responsabilidad |
+|---|---|---|
+| `modules/alumnos.php` | `alumnos-service` | Gestión de alumnos y expedientes académicos |
+| `modules/profesores.php` | `profesores-service` | Gestión de docentes y especialidades |
+| `modules/cursos.php` | `cursos-service` | Administración de cursos y asignaciones |
+| `modules/matriculas.php` | `matriculas-service` | Gestión de matrículas académicas |
+| `modules/pagos.php` | `pagos-service` | Gestión financiera y control de pagos |
+| `modules/asistencia.php` | `asistencia-service` | Registro y control de asistencia |
+| `modules/calificaciones.php` | `calificaciones-service` | Registro de notas y rendimiento académico |
+| `modules/notificaciones.php` | `notificaciones-service` | Envío de alertas y notificaciones |
+
+La comunicación entre servicios será centralizada mediante un API Gateway.
 
 ---
 **🎓 Proyecto de Arquitectura de Sistemas**  
