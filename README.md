@@ -278,49 +278,6 @@ Ahora abrimos el navegador web y entramos a: [http://localhost:8000](http://loca
 
 ---
 
-## 📮 Cómo Probar los Accesos en Postman (Simular peticiones)
-
-Como este sistema usa sesiones tradicionales de PHP (`PHPSESSID`) y formularios normales de HTML, podemos simular las pruebas de login y los permisos de los módulos en Postman siguiendo estos sencillos pasos:
-
-### Paso 1: Autenticación (Iniciar Sesión)
-Primero necesitamos loguearnos para obtener una cookie de sesión activa que Postman guardará automáticamente.
-
-1.  Abre Postman y crea una petición de tipo **`POST`**.
-2.  Coloca la URL: **`http://localhost:8000/login.php`**
-3.  Ve a la pestaña **`Body`**, selecciona **`x-www-form-urlencoded`** y añade estos datos:
-    *   `username`: `director`  (puedes probar con otros roles: `admin`, `profesor1`, `alumno1`, `padre1`)
-    *   `password`: `password123`
-4.  Presiona **`Send`**.
-5.  *Nota:* Postman recibirá la cookie de sesión de PHP en las cabeceras de respuesta y la recordará para los siguientes pasos.
-
-### Paso 2: Probar los Permisos (Petición GET)
-Con la sesión abierta, probemos si el rol tiene o no permitido ver un archivo.
-
-1.  Crea una petición de tipo **`GET`**.
-2.  Coloca la URL: **`http://localhost:8000/modules/alumnos.php`**
-3.  Presiona **`Send`**.
-4.  *Resultado:* Si iniciaste sesión como **Director, Administrativo o Docente**, te devolverá el HTML del listado. Pero si iniciaste sesión como **Alumno o Padre de familia**, el servidor te devolverá un estado **`403 Forbidden`** (Acceso Denegado). ¡Funciona la seguridad!
-
-### Paso 3: Simular la Creación de un Alumno (POST Form)
-Para registrar un alumno nuevo en la base de datos (disponible para `Director` o `Administrativo`):
-
-1.  Crea una petición de tipo **`POST`**.
-2.  Coloca la URL: **`http://localhost:8000/modules/alumnos.php?action=create`**
-3.  Ve a **`Body`** -> **`x-www-form-urlencoded`** y llena los campos obligatorios del formulario:
-    *   `nombre`: `Renato`
-    *   `apellido`: `Mendoza`
-    *   `documento`: `74839201`
-    *   `fecha_nacimiento`: `2011-06-15`
-    *   `direccion`: `Calle las Flores 123`
-    *   `telefono`: `987654321`
-    *   `estado_academico`: `Regular`
-    *   `email`: `renato.mendoza@colegio.edu.pe`
-    *   `username`: `renatomendoza`
-    *   `password`: `password123`
-4.  Presiona **`Send`**.
-
----
-
 ## 🛑 Limitaciones de este Monolito (Justificación para migrar a SOA)
 
 Durante el análisis del código legacy, encontramos varios problemas clásicos de los sistemas monolíticos que justifican la migración a una Arquitectura de Microservicios:
